@@ -44,42 +44,42 @@ class Quiz {
     }
 
     public void start() {
-        Scanner scanner = new Scanner(System.in);
+        try (Scanner scanner = new Scanner(System.in)) {
+			for (currentQuestionIndex = 0; currentQuestionIndex < questions.size(); currentQuestionIndex++) {
+			    Question currentQuestion = questions.get(currentQuestionIndex);
+			    timeUp = false;
 
-        for (currentQuestionIndex = 0; currentQuestionIndex < questions.size(); currentQuestionIndex++) {
-            Question currentQuestion = questions.get(currentQuestionIndex);
-            timeUp = false;
+			    System.out.println("\nQuestion " + (currentQuestionIndex + 1) + ":");
+			    currentQuestion.displayQuestion();
 
-            System.out.println("\nQuestion " + (currentQuestionIndex + 1) + ":");
-            currentQuestion.displayQuestion();
+			    timer = new Timer();
+			    timer.schedule(new TimerTask() {
+			        @Override
+			        public void run() {
+			            timeUp = true;
+			            System.out.println("\nTime's up!");
+			        }
+			    }, timeLimit * 1000);
 
-            timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    timeUp = true;
-                    System.out.println("\nTime's up!");
-                }
-            }, timeLimit * 1000);
+			    int answer = -1;
+			    while (!timeUp && (answer < 1 || answer > 4)) {
+			        System.out.print("Your answer (1-4): ");
+			        if (scanner.hasNextInt()) {
+			            answer = scanner.nextInt();
+			        } else {
+			            scanner.next(); // clear invalid input
+			        }
+			    }
 
-            int answer = -1;
-            while (!timeUp && (answer < 1 || answer > 4)) {
-                System.out.print("Your answer (1-4): ");
-                if (scanner.hasNextInt()) {
-                    answer = scanner.nextInt();
-                } else {
-                    scanner.next(); // clear invalid input
-                }
-            }
+			    timer.cancel();
 
-            timer.cancel();
-
-            if (answer >= 1 && answer <= 4) {
-                if (currentQuestion.isCorrect(answer - 1)) {
-                    score++;
-                }
-            }
-        }
+			    if (answer >= 1 && answer <= 4) {
+			        if (currentQuestion.isCorrect(answer - 1)) {
+			            score++;
+			        }
+			    }
+			}
+		}
 
         displayResult();
     }
