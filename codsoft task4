@@ -1,0 +1,112 @@
+import java.util.*;
+
+class Question {
+    String questionText;
+    String[] options;
+    int correctAnswerIndex;
+
+    public Question(String questionText, String[] options, int correctAnswerIndex) {
+        this.questionText = questionText;
+        this.options = options;
+        this.correctAnswerIndex = correctAnswerIndex;
+    }
+
+    public boolean isCorrect(int answerIndex) {
+        return answerIndex == correctAnswerIndex;
+    }
+
+    public void displayQuestion() {
+        System.out.println(questionText);
+        for (int i = 0; i < options.length; i++) {
+            System.out.println((i + 1) + ": " + options[i]);
+        }
+    }
+}
+
+class Quiz {
+    private List<Question> questions;
+    private int currentQuestionIndex;
+    private int score;
+    private int timeLimit; // in seconds
+    private Timer timer;
+    private boolean timeUp;
+
+    public Quiz(int timeLimit) {
+        questions = new ArrayList<>();
+        currentQuestionIndex = 0;
+        score = 0;
+        this.timeLimit = timeLimit;
+        timeUp = false;
+    }
+
+    public void addQuestion(Question question) {
+        questions.add(question);
+    }
+
+    public void start() {
+        Scanner scanner = new Scanner(System.in);
+
+        for (currentQuestionIndex = 0; currentQuestionIndex < questions.size(); currentQuestionIndex++) {
+            Question currentQuestion = questions.get(currentQuestionIndex);
+            timeUp = false;
+
+            System.out.println("\nQuestion " + (currentQuestionIndex + 1) + ":");
+            currentQuestion.displayQuestion();
+
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    timeUp = true;
+                    System.out.println("\nTime's up!");
+                }
+            }, timeLimit * 1000);
+
+            int answer = -1;
+            while (!timeUp && (answer < 1 || answer > 4)) {
+                System.out.print("Your answer (1-4): ");
+                if (scanner.hasNextInt()) {
+                    answer = scanner.nextInt();
+                } else {
+                    scanner.next(); // clear invalid input
+                }
+            }
+
+            timer.cancel();
+
+            if (answer >= 1 && answer <= 4) {
+                if (currentQuestion.isCorrect(answer - 1)) {
+                    score++;
+                }
+            }
+        }
+
+        displayResult();
+    }
+
+    private void displayResult() {
+        System.out.println("\nQuiz finished!");
+        System.out.println("Your score: " + score + "/" + questions.size());
+        System.out.println("\nCorrect answers summary:");
+        for (int i = 0; i < questions.size(); i++) {
+            Question q = questions.get(i);
+            System.out.println("Q" + (i + 1) + ": " + q.questionText);
+            System.out.println("Correct answer: " + q.options[q.correctAnswerIndex]);
+        }
+    }
+}
+
+public class QuizApp {
+    public static void main(String[] args) {
+        Quiz quiz = new Quiz(10); // 10 seconds time limit for each question
+
+        quiz.addQuestion(new Question("What is the capital of France?",
+                new String[]{"Berlin", "Madrid", "Paris", "Rome"}, 2));
+        quiz.addQuestion(new Question("Which planet is known as the Red Planet?",
+                new String[]{"Earth", "Mars", "Jupiter", "Saturn"}, 1));
+        quiz.addQuestion(new Question("Who wrote 'Romeo and Juliet'?",
+                new String[]{"Charles Dickens", "William Shakespeare", "Mark Twain", "Jane Austen"}, 1));
+
+        quiz.start();
+    }
+}
